@@ -106,3 +106,13 @@ ParaView Glance is distributed under the OSI-approved BSD 3-clause License.  See
 [COPYRIGHT]: COPYRIGHT
 [LICENSE]: LICENSE
 [ParaView Licenses]: http://www.paraview.org/paraview-license/
+
+
+VESTEC
+======
+
+```
+npm run dev
+```
+
+Open `localhost:9999?accessToken=<your accessToken>&uuid=<incident uuid>`
