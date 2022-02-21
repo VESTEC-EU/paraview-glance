@@ -13,8 +13,16 @@ function getExtension(filename) {
 }
 
 function isSupportedExtension(ext) {
-  const supportedExts = ['png', 'vtu', 'pvtp'];
+  const supportedExts = ['vtu', 'pvtp'];
   return supportedExts.indexOf(ext) > -1;
+}
+
+function getSimulationIDFromComment(comment) {
+  // Assuming comments have the following format:
+  // "Created by WFA post-processor on archer2 with simulation ID <simulationID>"
+  // Returns: "<simulationID>"
+  const s = "simulation ID ";
+  return comment.substring(comment.indexOf(s) + s.length);
 }
 
 export default {
@@ -45,13 +53,17 @@ export default {
       const userParams = vtkURLExtract.extractURLParameters();
       const vestec = new Vestec(vestecHost);
 
-      const { accessToken, uuid } = userParams;
+      const { accessToken, incidentID, simulationID } = userParams;
       if (!accessToken) {
         console.error('no accessToken specified');
         return;
       }
-      if (!uuid) {
-        console.error('no uuid specified');
+      if (!incidentID) {
+        console.error('no incidentID specified');
+        return;
+      }
+      if (!simulationID) {
+        console.error('no simulationID specified');
         return;
       }
 
@@ -66,7 +78,7 @@ export default {
       }
 
       const datasets = await vestec
-        .getIncident(uuid)
+        .getIncident(incidentID)
         .then((res) => res.body.getReader().read())
         .then((data) => {
           const uint8array = data.value;
@@ -74,9 +86,13 @@ export default {
           return JSON.parse(str).data_sets;
         });
 
-      const validDatasets = datasets.filter((ds) =>
-        isSupportedExtension(getExtension(ds.name))
+      // filter datasets by their extension and simulationID
+      const validDatasets = datasets.filter(
+        (ds) =>
+          isSupportedExtension(getExtension(ds.name)) &&
+          getSimulationIDFromComment(ds.comment) === simulationID
       );
+
       const options = {
         headers: {
           authorization: `Bearer ${accessToken}`,
@@ -87,7 +103,7 @@ export default {
       const datasetsToLoad = validDatasets.map((ds) => ({
         name: ds.name,
         ...vestec.buildRequestInit(`data/${ds.uuid}`),
-        options
+        options,
       }));
 
       this.openRemoteFiles(datasetsToLoad);
