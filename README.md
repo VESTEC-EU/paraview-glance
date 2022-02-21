@@ -115,4 +115,4 @@ VESTEC
 npm run dev
 ```
 
-Open `localhost:9999?accessToken=<your accessToken>&uuid=<incident uuid>`
+Open `localhost:9999?accessToken=<your accessToken>&incidentID=<incident uuid>&simulationID=<simulation uuid>`
