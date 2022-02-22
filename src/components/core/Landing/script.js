@@ -21,7 +21,7 @@ function getSimulationIDFromComment(comment) {
   // Assuming comments have the following format:
   // "Created by WFA post-processor on archer2 with simulation ID <simulationID>"
   // Returns: "<simulationID>"
-  const s = "simulation ID ";
+  const s = 'simulation ID ';
   return comment.substring(comment.indexOf(s) + s.length);
 }
 
@@ -81,10 +81,16 @@ export default {
         .getIncident(incidentID)
         .then((res) => res.body.getReader().read())
         .then((data) => {
+          if (!data) return [];
           const uint8array = data.value;
           const str = new TextDecoder().decode(uint8array);
           return JSON.parse(str).data_sets;
         });
+
+      if (!datasets) {
+        console.error('no datasets were found for this incident');
+        return;
+      }
 
       // filter datasets by their extension and simulationID
       const validDatasets = datasets.filter(
